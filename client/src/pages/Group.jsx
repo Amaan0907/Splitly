@@ -20,18 +20,19 @@ import BalancesTab from '../components/BalancesTab.jsx'
 import SettleForm from '../components/SettleForm.jsx'
 import PaymentsTab from '../components/PaymentsTab.jsx'
 import ActivityTab from '../components/ActivityTab.jsx'
+import MembersTab from '../components/MembersTab.jsx'
 import { RevealWords } from './landing/fx.jsx'
 import { errorText } from '../lib/api.js'
 import { formatMoney } from '../lib/money.js'
 import { plural } from '../lib/format.js'
 import { useDeleteSettlement, useGroup, useMe } from '../lib/queries.js'
 
-// More tabs are added as they are built.
 const TABS = [
   { value: 'expenses', label: 'Expenses' },
   { value: 'balances', label: 'Balances' },
   { value: 'payments', label: 'Payments' },
   { value: 'activity', label: 'Activity' },
+  { value: 'members', label: 'Members' },
 ]
 
 function GroupHeader({ group, members, onAddExpense, onSettleUp }) {
@@ -197,6 +198,7 @@ export default function Group() {
             <PaymentsTab group={group} me={me} onGoBalances={() => setTab('balances')} />
           )}
           {tab === 'activity' && <ActivityTab group={group} me={me} />}
+          {tab === 'members' && <MembersTab group={group} members={members} me={me} />}
         </motion.div>
       </AnimatePresence>
 
