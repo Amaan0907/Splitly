@@ -384,8 +384,20 @@ export function Segmented({
 }) {
   const pillId = useId()
   const refs = useRef([])
+  const trackRef = useRef(null)
   const index = options.findIndex((o) => o.value === value)
   const isTabs = kind === 'tabs'
+
+  // On phones the track scrolls sideways: keep the active option fully visible.
+  useEffect(() => {
+    const track = trackRef.current
+    const btn = refs.current[index]
+    if (!track || !btn || track.scrollWidth <= track.clientWidth) return
+    const left = btn.offsetLeft - 8
+    const right = btn.offsetLeft + btn.offsetWidth + 8
+    if (left < track.scrollLeft) track.scrollLeft = left
+    else if (right > track.scrollLeft + track.clientWidth) track.scrollLeft = right - track.clientWidth
+  }, [index])
 
   const move = (next) => {
     const i = (next + options.length) % options.length
@@ -409,11 +421,12 @@ export function Segmented({
 
   return (
     <div
+      ref={trackRef}
       role={isTabs ? 'tablist' : 'radiogroup'}
       aria-label={label}
       onKeyDown={onKeyDown}
       className={cx(
-        'flex max-w-full gap-0.5 overflow-x-auto rounded-full p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+        'relative flex max-w-full gap-0.5 overflow-x-auto rounded-full p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         track,
         className,
       )}

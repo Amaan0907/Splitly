@@ -37,7 +37,7 @@ export function Magnetic({ children, strength = 0.3, className }) {
       onPointerMove={onPointerMove}
       onPointerLeave={reset}
       style={{ x, y }}
-      className={cx('-m-6 inline-block p-6', className)}
+      className={cx('-m-4 inline-block p-4 sm:-m-6 sm:p-6', className)}
     >
       {children}
     </motion.div>

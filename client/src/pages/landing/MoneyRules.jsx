@@ -61,7 +61,7 @@ function SplitDemo() {
                 delay={0.7}
                 duration={1.2}
                 format={paise}
-                className="text-lg font-extrabold tracking-tight sm:text-2xl"
+                className="text-base font-extrabold tracking-tight sm:text-2xl"
               />
             </motion.div>
             {i === 0 && (

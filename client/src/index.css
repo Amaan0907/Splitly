@@ -38,6 +38,17 @@ body {
     outline: 2px solid var(--color-pen);
     outline-offset: 2px;
   }
+  /* Pen blue is too dark to see on ink panels; use the light pen there. */
+  .bg-ink :focus-visible {
+    outline-color: var(--color-pen-light);
+  }
+}
+
+/* Screen-reader-only text is absolutely positioned; anchor it to its container's corner
+   so a 1px span next to an amount near the right edge can't widen the page. */
+.sr-only {
+  top: 0;
+  left: 0;
 }
 
 /* Lenis */
@@ -60,6 +71,8 @@ html.lenis body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important; /* stops infinite pulses from flickering */
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

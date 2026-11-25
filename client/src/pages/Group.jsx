@@ -78,12 +78,13 @@ function GroupHeader({ group, members, onAddExpense, onSettleUp }) {
             </>
           )}
         </div>
-        <div className="flex flex-wrap gap-3">
-          {/* Hick's law: Settle up is deliberately secondary; Add expense is the one primary action. */}
-          <Button variant="ghost-light" size="lg" onClick={onSettleUp}>
+        <div className="flex gap-3">
+          {/* Hick's law: Settle up is deliberately secondary; Add expense is the one primary action.
+              On phones both use the md height so they fit side by side. */}
+          <Button variant="ghost-light" size="md" onClick={onSettleUp} className="sm:h-13 sm:px-7 sm:text-lg">
             Settle up
           </Button>
-          <Button variant="light" size="lg" onClick={onAddExpense}>
+          <Button variant="light" size="md" onClick={onAddExpense} className="sm:h-13 sm:px-7 sm:text-lg">
             <PlusIcon /> Add expense
           </Button>
         </div>
