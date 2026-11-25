@@ -8,10 +8,14 @@ const schema=z.object({
     NODE_ENV:z.enum(['development','test','production']).default('development'),
     PORT:z.coerce.number().int().positive().default(4000),
     DATABASE_URL:z.url(),
-    TEST_DATABASE_URL:z.url(),
+    // only the tests use a second database; production does not need one
+    TEST_DATABASE_URL:z.url().optional(),
     JWT_SECRET:z.string().min(32),
     CLIENT_ORIGIN:z.url({protocol:/^https?$/}),
     LOG_LEVEL:z.enum(['fatal','error','warn','info','debug','trace','silent']).default("info")
+}).refine((e)=>e.NODE_ENV!=='test'||e.TEST_DATABASE_URL,{
+    message:'Required when NODE_ENV is test',
+    path:['TEST_DATABASE_URL'],
 })
 
 
