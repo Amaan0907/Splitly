@@ -1,9 +1,14 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { FloatingNav, Wordmark, navPill } from '../components/Layout.jsx'
 import { buttonClass, cx } from '../components/ui.jsx'
 import { useMe } from '../lib/queries.js'
 import Hero from './landing/Hero.jsx'
 import Marquee from './landing/Marquee.jsx'
+import Untangle from './landing/Untangle.jsx'
+import MoneyRules from './landing/MoneyRules.jsx'
+import Steps from './landing/Steps.jsx'
 import { Magnetic, RevealWords, Rise } from './landing/fx.jsx'
 
 function LandingNav({ loggedIn }) {
@@ -65,14 +70,27 @@ function Finale({ ctaTo }) {
 export default function Landing() {
   const { data: me } = useMe()
   const ctaTo = me ? '/dashboard' : '/register'
+
+  // The web font changes text heights; re-measure pinned and scrubbed scenes once it has loaded.
+  useEffect(() => {
+    let cancelled = false
+    document.fonts?.ready.then(() => {
+      if (!cancelled) ScrollTrigger.refresh()
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <>
       <LandingNav loggedIn={!!me} />
       <main>
         <Hero ctaTo={ctaTo} />
         <Marquee />
-        {/* Untangle, MoneyRules and Steps arrive in stage 5. */}
-        <div className="h-32 sm:h-40" />
+        <Untangle />
+        <MoneyRules />
+        <Steps />
         <Finale ctaTo={ctaTo} />
       </main>
     </>
