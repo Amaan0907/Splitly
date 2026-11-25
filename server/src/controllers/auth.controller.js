@@ -35,15 +35,17 @@ const logoutController=(req,res)=>{
     res.status(204).end()
 }
 
+// wrapped like every other endpoint that returns a user: { user }
 const currentUserController=(req,res)=>{
-    res.json(req.user)
+    res.json({user:req.user})
 }
 
+// an update, not a create: 200
 const updateUserController=async (req,res)=>{
     const {user,token}=await authService.updateProfile(req.user.id,req.valid.body)
     setSession(res,token)
 
-    res.status(201).json({user})
+    res.json({user})
 }
 
 module.exports={

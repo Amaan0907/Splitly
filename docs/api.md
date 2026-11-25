@@ -14,8 +14,6 @@ This document describes the Splitly REST API as it is implemented in `server/`. 
 5. [Endpoints](#5-endpoints)
 6. [Permissions](#6-permissions)
 7. [Product decisions](#7-product-decisions)
-8. [Known quirks](#8-known-quirks)
-9. [Not built yet](#9-not-built-yet)
 
 ### Endpoint index
 
@@ -125,7 +123,7 @@ Every error response has this shape:
 |---|---|---|
 | 400 | `VALIDATION_ERROR` | The body, query or path fails validation (including split rules), or the body is not valid JSON |
 | 401 | `UNAUTHENTICATED` | No valid session cookie |
-| 401 | `INVALID CREDENTIALS` | Wrong email or password on login, or a wrong `currentPassword` (see [known quirks](#8-known-quirks)) |
+| 401 | `INVALID_CREDENTIALS` | Wrong email or password on login, or a wrong `currentPassword` |
 | 403 | `NOT_A_MEMBER` | The group exists, but the caller is not in it |
 | 403 | `FORBIDDEN` | The caller is a member but lacks permission (for example, not an admin) |
 | 404 | `NOT_FOUND` | The group, expense, settlement, member or route does not exist. A soft-deleted expense counts as missing. |
@@ -296,7 +294,7 @@ Errors: `400 VALIDATION_ERROR`, `409 EMAIL_TAKEN`, `429 RATE_LIMITED`.
 
 **200:** sets the `token` cookie and returns `{ "user": User }`.
 
-Errors: `400 VALIDATION_ERROR`, `401 INVALID CREDENTIALS` (the same message whether the email or the password is wrong, so the response doesn't reveal which emails have accounts), `429 RATE_LIMITED`.
+Errors: `400 VALIDATION_ERROR`, `401 INVALID_CREDENTIALS` (the same message whether the email or the password is wrong, so the response doesn't reveal which emails have accounts), `429 RATE_LIMITED`.
 
 #### POST /auth/logout
 Clears the cookie. It works even without a valid session.
@@ -306,7 +304,7 @@ Clears the cookie. It works even without a valid session.
 #### GET /auth/me
 Returns the logged-in user. The client calls it on startup to restore the session.
 
-**200:** a `User` object (not wrapped in `{ user }`; see [known quirks](#8-known-quirks)).
+**200:** `{ "user": User }`
 
 Errors: `401 UNAUTHENTICATED`.
 
@@ -323,9 +321,9 @@ Updates the caller's name and/or password. Send only what changes; at least one 
 | `newPassword` | optional, 8–72 characters; requires `currentPassword` |
 | `currentPassword` | required when `newPassword` is sent |
 
-**201:** re-issues the `token` cookie and returns `{ "user": User }`. Email changes are not supported.
+**200:** re-issues the `token` cookie and returns `{ "user": User }`.
 
-Errors: `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `401 INVALID CREDENTIALS` (wrong `currentPassword`).
+Errors: `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `401 INVALID_CREDENTIALS` (wrong `currentPassword`).
 
 ---
 
@@ -346,7 +344,7 @@ Creates a group. The creator becomes its first member, with role `admin`.
 | Field | Rules |
 |---|---|
 | `name` | 1–60 characters |
-| `description` | optional, up to 250 characters |
+| `description` | optional, up to 200 characters |
 | `currency` | optional, 3 uppercase letters, default `"INR"` |
 
 **201:** `{ "group": Group }`. Logs `group.created`.
@@ -661,28 +659,3 @@ Each decision has at least one integration test.
 | D7 | Can the only admin leave? | **No:** `409 LAST_ADMIN`. |
 | D8 | Are future dates allowed? | **No:** `400` for expenses and payments. |
 | D9 | What does a non-member get for a group that exists: 403 or 404? | **403 `NOT_A_MEMBER`.** 404 is only for ids that don't exist. |
-
----
-
-## 8. Known quirks
-
-These behaviours work, but they don't follow the conventions above. Fixing one means updating the web client and the tests in the same change.
-
-| Behaviour | Expected convention |
-|---|---|
-| Wrong credentials return code `INVALID CREDENTIALS`, with a space | The other codes use an underscore (`INVALID_CREDENTIALS`) |
-| `GET /auth/me` returns the user object directly | Other endpoints wrap it, as in `{ "user": … }` |
-| `PATCH /auth/me` returns `201` | `200` is usual for an update |
-| Group `description` allows 250 characters | The web client limits the field to 200 |
-| Group `name` allows 60 characters | The web client's New group field allows 80, so a 61–80 character name gets a `400` |
-
----
-
-## 9. Not built yet
-
-These were in the original plan but are **not** implemented. Calling them returns `404 NOT_FOUND`.
-
-- Group analytics (`GET /groups/:id/analytics`) and CSV/PDF export (`GET /groups/:id/export`)
-- Notifications (`GET` and `PATCH /notifications`)
-- Real-time updates over Socket.IO (the client refreshes its data after every change instead)
-- Inviting people who don't have an account yet, and promoting a member to admin

@@ -57,7 +57,7 @@ describe('POST /api/auth/login',()=>{
         const unknown=await request(app).post('/api/auth/login').send({email:"Amaan@test.com",password:"Amaan@123"})
         expect(wrong.status).toBe(401)
         expect(unknown.status).toBe(401)
-        expect(wrong.body.error.code).toBe('INVALID CREDENTIALS')
+        expect(wrong.body.error.code).toBe('INVALID_CREDENTIALS')
         expect(unknown.body).toEqual(wrong.body)
     })
 })
@@ -78,8 +78,9 @@ describe('session',()=>{
 
         const me=await agent.get('/api/auth/me')
         expect(me.status).toBe(200)
-        expect(me.body.email).toBe(user.email)
-        expect(me.body).not.toHaveProperty('passwordHash')
+        expect(Object.keys(me.body)).toEqual(['user'])
+        expect(me.body.user.email).toBe(user.email)
+        expect(me.body.user).not.toHaveProperty('passwordHash')
 
 
         const out =await agent.post('/api/auth/logout')
@@ -103,27 +104,27 @@ describe('PATCH /api/auth/me',()=>{
     test('changes the name',async()=>{
         const agent =await registered()
         const res=await agent.patch('/api/auth/me').send({name:'Mohd Amaan'})
-        expect(res.status).toBe(201)
+        expect(res.status).toBe(200)
         expect(res.body.user.name).toBe('Mohd Amaan')
     })
 
     test('changes the password; the old one stops working',async()=>{
         const agent=await registered()
         const res=await agent.patch('/api/auth/me').send({currentPassword:user.password,newPassword:"Amaan@1234"})
-        expect(res.status).toBe(201)
+        expect(res.status).toBe(200)
         const oldLogin=await request(app).post('/api/auth/login').send({email:user.email,password:user.password})
         const newLogin=await request(app).post('/api/auth/login').send({email:user.email,password:"Amaan@1234"})
         expect(oldLogin.status).toBe(401)
         expect(newLogin.status).toBe(200)
         expect(newLogin.headers['set-cookie']).toBeDefined()
-        expect(oldLogin.body.error.code).toBe('INVALID CREDENTIALS')
+        expect(oldLogin.body.error.code).toBe('INVALID_CREDENTIALS')
     })
 
-    test('401 INVALID CREDENTIALS for a wrong current password',async()=>{
+    test('401 INVALID_CREDENTIALS for a wrong current password',async()=>{
         const agent =await registered()
         const res=await agent.patch('/api/auth/me').send({currentPassword:"Amaan@0907",newPassword:"Amaan@1234"})
         expect(res.status).toBe(401)
-        expect(res.body.error.code).toBe('INVALID CREDENTIALS')
+        expect(res.body.error.code).toBe('INVALID_CREDENTIALS')
 
     })
 

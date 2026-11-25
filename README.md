@@ -4,7 +4,9 @@ A group expense-splitting app for flats, trips and friend groups. Add what you p
 
 Splitly only **records** payments made by cash or UPI. It never moves money.
 
-**Live API:** https://splitly-0qy4.onrender.com/api/health (free Render instance, so the first request after a quiet spell can take about 50 seconds)
+**Live app:** https://splitly-five-sable.vercel.app
+
+**Live API:** https://splitly-0qy4.onrender.com/api/health. It runs on a free Render instance, so the first request after a quiet spell can take about 50 seconds.
 
 ## Features
 
@@ -48,8 +50,8 @@ Details are in [docs/architecture.md](docs/architecture.md).
 | API | Node.js 22, Express 5, Zod 4 (validation), `pg`, `node-pg-migrate`, bcryptjs, jsonwebtoken, helmet, express-rate-limit, pino |
 | Database | PostgreSQL |
 | Client | React 19, Vite 6, React Router 7, TanStack Query 5, Tailwind CSS 4, Motion, GSAP, Lenis |
-| Tests | Jest 30, Supertest: **263 tests** across 2 unit and 6 integration suites |
-| Hosting | Render (API and Postgres) |
+| Tests | Jest 30, Supertest: **266 tests** across 2 unit and 6 integration suites |
+| Hosting | Vercel (client), Render (API and Postgres) |
 
 ## Repository layout
 

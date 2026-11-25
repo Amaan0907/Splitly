@@ -141,7 +141,7 @@ Lists use **keyset (cursor) pagination**, not `OFFSET`:
 
 ## Testing
 
-`npm test` at the repository root runs **263 tests** with Jest and Supertest against a real PostgreSQL test database (`TEST_DATABASE_URL`). The database is emptied before each test.
+`npm test` at the repository root runs **266 tests** with Jest and Supertest against a real PostgreSQL test database (`TEST_DATABASE_URL`). The database is emptied before each test.
 
 | Suite | Covers |
 |---|---|

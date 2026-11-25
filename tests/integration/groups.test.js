@@ -42,11 +42,19 @@ describe('POST /api/groups', () => {
         ['empty name', { name: '' }],
         ['bad currency', { name: 'X', currency: 'rupees' }],
         ['unknown field', { name: 'X', admin: true }],
+        ['name over 60 characters', { name: 'x'.repeat(61) }],
+        ['description over 200 characters', { name: 'X', description: 'x'.repeat(201) }],
     ])('400 for %s', async (_, body) => {
         const { aisha } = await setup();
         const res = await aisha.agent.post('/api/groups').send(body);
         expect(res.status).toBe(400);
         expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    test('accepts a name of exactly 60 and a description of exactly 200 characters', async () => {
+        const { aisha } = await setup();
+        const res = await aisha.agent.post('/api/groups').send({ name: 'n'.repeat(60), description: 'd'.repeat(200) });
+        expect(res.status).toBe(201);
     });
 
     test('401 when not logged in', async () => {

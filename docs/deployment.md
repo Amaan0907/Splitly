@@ -1,6 +1,10 @@
 # Deploying Splitly
 
-The API and its PostgreSQL database run on **Render**. The live API is at `https://splitly-0qy4.onrender.com`, and `/api/health` should return `{"status":"ok","db":"ok"}`.
+| Part | Host | Live URL |
+|---|---|---|
+| Web client | Vercel | https://splitly-five-sable.vercel.app |
+| API | Render web service | https://splitly-0qy4.onrender.com (`/api/health` returns `{"status":"ok","db":"ok"}`) |
+| Database | Render Postgres | internal only |
 
 ## 1. Database
 
@@ -8,7 +12,7 @@ The API and its PostgreSQL database run on **Render**. The live API is at `https
 2. Pick the same region you'll use for the API (Singapore is closest to India).
 3. When it's ready, copy its **Internal Database URL**. The API uses that one.
 
-Free Render databases expire 30 days after creation. For a longer-lived free database, use Neon, and add `?sslmode=require` to its connection URL.
+Free Render databases expire 30 days after creation.
 
 ## 2. API (web service)
 
@@ -33,32 +37,39 @@ Choose **New → Web Service** and connect the GitHub repository.
 | `NODE_ENV` | `production` |
 | `DATABASE_URL` | the Internal Database URL from step 1 |
 | `JWT_SECRET` | a new random secret, at least 32 characters: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
-| `CLIENT_ORIGIN` | the web client's exact origin, e.g. `https://splitly.vercel.app` (no trailing slash) |
+| `CLIENT_ORIGIN` | `https://splitly-five-sable.vercel.app`, the web client's exact origin, with no trailing slash |
 | `LOG_LEVEL` | `info` |
 
 Don't set `PORT` (Render provides it), and don't set `TEST_DATABASE_URL`, which is only needed by the tests. Never reuse the `JWT_SECRET` from your local `.env`.
 
 ### Production behaviour that depends on these settings
 
-- **Cookies** are `Secure; SameSite=None`, so a client on another domain can send them. Safari blocks cookies from another site by default, so use Chrome or Edge for demos, or serve the client from the same site as the API.
+- **Cookies** are `Secure; SameSite=None`, so a client on another domain can send them. Safari blocks cookies from another site by default, so use Chrome or Edge for demos.
 - **`trust proxy`** is set to 1, so the login rate limiter sees each visitor's real IP rather than Render's proxy.
 - **Cold starts:** free instances sleep after 15 minutes without traffic, and the next request takes about 50 seconds. Open `/api/health` shortly before a demo.
 
-## 3. Web client
+## 3. Web client (Vercel)
 
-The client is a static Vite build:
+The client is a static Vite build, deployed on Vercel from the GitHub repository.
+
+| Setting | Value |
+|---|---|
+| Root Directory | `client` |
+| Framework preset | Vite |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+
+- **API address:** `client/.env.production` sets `VITE_API_URL=https://splitly-0qy4.onrender.com` (the API origin, without `/api`), so the build calls the deployed API directly.
+- **Page links:** `client/vercel.json` rewrites every path to `index.html`, so pages like `/dashboard` or `/groups/7` load the React app on refresh instead of Vercel's 404 page. Files that exist (scripts, styles, the favicon) are still served as they are.
+- **CORS:** the API's `CLIENT_ORIGIN` is set to the Vercel URL. If the client's address changes, update `CLIENT_ORIGIN` on Render too.
+
+To build locally the same way:
 
 ```bash
 cd client
 npm ci
 npm run build      # output in client/dist
 ```
-
-- **API address:** `client/.env.production` sets `VITE_API_URL=https://splitly-0qy4.onrender.com` (the API origin, without `/api`).
-- **Where to host it:** any static host works: Render Static Site, Vercel or Netlify.
-  - Use `client` as the root directory, `npm run build` as the build command and `dist` as the output folder.
-  - Add a rewrite of `/*` to `/index.html`, so links like `/groups/7` load the app instead of a 404.
-- **After deploying:** set the API's `CLIENT_ORIGIN` to the client's URL and redeploy the API.
 
 ## 4. Looking at production data
 
@@ -79,3 +90,4 @@ Leave `password_hash` out of queries you share. The production database only con
 | CORS errors in the browser | `CLIENT_ORIGIN` doesn't exactly match the client's origin |
 | Login works but the next request is `401` | The cookie was blocked: check the API is on HTTPS and the browser allows cookies from other sites (Safari blocks them by default) |
 | `429 RATE_LIMITED` while testing | More than 10 login/register attempts in 15 minutes from one IP |
+| Refreshing a page like `/dashboard` shows Vercel's 404 page | `client/vercel.json` is missing from the deployed commit |

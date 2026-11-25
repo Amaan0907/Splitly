@@ -188,7 +188,7 @@ function NewGroupModal({ onClose }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Goa trip, Flat 302…"
-              maxLength={80}
+              maxLength={60}
               className={cx(inputClass, 'h-16 text-2xl font-bold tracking-tight')}
             />
           )}

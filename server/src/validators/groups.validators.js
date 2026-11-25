@@ -2,15 +2,18 @@ const {z}=require('zod')
 
 const email=z.string().trim().toLowerCase().pipe(z.email().max(254))
 
+// one limit, shared with the web client's form
+const DESCRIPTION_MAX=200
+
 const createGroupSchema=z.strictObject({
     name:z.string().trim().min(1).max(60),
-    description:z.string().trim().max(250).optional(),
+    description:z.string().trim().max(DESCRIPTION_MAX).optional(),
     currency:z.string().regex(/^[A-Z]{3}$/,'Must be a 3-letter currency code').default('INR')
 })
 
 const updateGroupSchema=z.strictObject({
     name:z.string().trim().min(1).max(60).optional(),
-    description:z.string().trim().max(250).optional()
+    description:z.string().trim().max(DESCRIPTION_MAX).optional()
 })
 .refine((b)=>b.name!==undefined || b.description!==undefined,{message:'Nothing to update'})
 

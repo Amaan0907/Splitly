@@ -76,7 +76,6 @@ const MESSAGES = {
   NETWORK: "Can't reach Splitly. Check your connection and try again.",
   UNAUTHENTICATED: 'Your session has ended. Log in again.',
   INVALID_CREDENTIALS: "That email and password don't match. Check them and try again.",
-  'INVALID CREDENTIALS': "That email and password don't match. Check them and try again.",
   EMAIL_TAKEN: 'An account with this email already exists. Log in instead.',
   RATE_LIMITED: 'Too many attempts. Wait a few minutes, then try again.',
   NOT_A_MEMBER: 'You are not a member of this group. Ask someone in it to add you.',

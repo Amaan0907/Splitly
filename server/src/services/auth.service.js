@@ -10,7 +10,7 @@ const COST=10
 const DUMMY_HASH=bcrypt.hashSync('not-a-real-password',COST)
 
 const invalidCredentials=()=>(
-    new AppError(401,'INVALID CREDENTIALS','Invalid email or password')
+    new AppError(401,'INVALID_CREDENTIALS','Invalid email or password')
 )
 
 function signToken(userId){

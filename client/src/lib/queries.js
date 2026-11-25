@@ -92,7 +92,7 @@ export function useMe() {
     queryFn: async ({ signal }) => {
       try {
         const res = await api.get('/auth/me', { signal })
-        return stripHash(res?.user ?? res)
+        return stripHash(res.user)
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) return null
         throw err
