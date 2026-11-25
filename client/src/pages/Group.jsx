@@ -1,18 +1,36 @@
 import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
-import { AvatarStack, BackIcon, EASE, Empty, ErrorNote, Money, PlusIcon, Segmented, buttonClass, Button } from '../components/ui.jsx'
+import {
+  AvatarStack,
+  BackIcon,
+  Button,
+  EASE,
+  Empty,
+  ErrorNote,
+  Money,
+  PlusIcon,
+  Segmented,
+  buttonClass,
+  useToast,
+} from '../components/ui.jsx'
 import ExpensesTab from '../components/ExpensesTab.jsx'
 import ExpenseForm, { ExpenseDetails, canEditExpense } from '../components/ExpenseForm.jsx'
+import BalancesTab from '../components/BalancesTab.jsx'
+import SettleForm from '../components/SettleForm.jsx'
 import { RevealWords } from './landing/fx.jsx'
 import { errorText } from '../lib/api.js'
+import { formatMoney } from '../lib/money.js'
 import { plural } from '../lib/format.js'
-import { useGroup, useMe } from '../lib/queries.js'
+import { useDeleteSettlement, useGroup, useMe } from '../lib/queries.js'
 
 // More tabs are added as they are built.
-const TABS = [{ value: 'expenses', label: 'Expenses' }]
+const TABS = [
+  { value: 'expenses', label: 'Expenses' },
+  { value: 'balances', label: 'Balances' },
+]
 
-function GroupHeader({ group, members, onAddExpense }) {
+function GroupHeader({ group, members, onAddExpense, onSettleUp }) {
   const net = group.myNetCents ?? 0
   const users = members.map((m) => m.user)
   const meta = `${plural(members.length, 'member')}, amounts in ${group.currency}`
@@ -56,6 +74,10 @@ function GroupHeader({ group, members, onAddExpense }) {
           )}
         </div>
         <div className="flex flex-wrap gap-3">
+          {/* Hick's law: Settle up is deliberately secondary; Add expense is the one primary action. */}
+          <Button variant="ghost-light" size="lg" onClick={onSettleUp}>
+            Settle up
+          </Button>
           <Button variant="light" size="lg" onClick={onAddExpense}>
             <PlusIcon /> Add expense
           </Button>
@@ -71,6 +93,24 @@ export default function Group() {
   const query = useGroup(id)
   const [params, setParams] = useSearchParams()
   const [form, setForm] = useState(null) // null | { expense?: Expense }
+  const [settle, setSettle] = useState(null) // null | { from?, to?, amountCents? }
+  const toast = useToast()
+  // Lives on the page, not in the modal, so Undo still works after the modal has closed.
+  const undoSettlement = useDeleteSettlement(id)
+
+  const onRecorded = (settlement, { fromName, toName }) => {
+    const currency = query.data?.group.currency
+    toast(`Recorded ${formatMoney(settlement.amountCents, currency)} from ${fromName} to ${toName}`, {
+      action: {
+        label: 'Undo',
+        onClick: () =>
+          undoSettlement.mutate(settlement.id, {
+            onSuccess: () => toast('Payment undone'),
+            onError: (err) => toast(errorText(err)),
+          }),
+      },
+    })
+  }
 
   const requested = params.get('tab')
   const tab = TABS.some((t) => t.value === requested) ? requested : TABS[0].value
@@ -118,7 +158,12 @@ export default function Group() {
 
   return (
     <>
-      <GroupHeader group={group} members={members} onAddExpense={() => setForm({})} />
+      <GroupHeader
+        group={group}
+        members={members}
+        onAddExpense={() => setForm({})}
+        onSettleUp={() => setTab('balances')}
+      />
 
       <Segmented
         kind="tabs"
@@ -143,6 +188,7 @@ export default function Group() {
           {tab === 'expenses' && (
             <ExpensesTab group={group} me={me} onAdd={() => setForm({})} onOpen={openExpense} />
           )}
+          {tab === 'balances' && <BalancesTab group={group} me={me} onSettle={setSettle} />}
         </motion.div>
       </AnimatePresence>
 
@@ -160,6 +206,20 @@ export default function Group() {
               onClose={() => setForm(null)}
             />
           ))}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {settle && (
+          <SettleForm
+            key="settle"
+            group={group}
+            members={members}
+            me={me}
+            prefill={settle}
+            onClose={() => setSettle(null)}
+            onRecorded={onRecorded}
+          />
+        )}
       </AnimatePresence>
     </>
   )
