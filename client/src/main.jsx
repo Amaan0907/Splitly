@@ -4,9 +4,10 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createQueryClient } from './lib/queries.js'
 import { ToastProvider } from './components/ui.jsx'
-import { RootLayout } from './components/Layout.jsx'
+import { AppLayout, RootLayout } from './components/Layout.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Auth from './pages/Auth.jsx'
+import Dashboard from './pages/Dashboard.jsx'
 import './index.css'
 
 const Landing = lazy(() => import('./pages/Landing.jsx'))
@@ -30,7 +31,9 @@ createRoot(document.getElementById('root')).render(
               />
               <Route path="/login" element={<Auth mode="login" />} />
               <Route path="/register" element={<Auth mode="register" />} />
-              {/* App routes are added in the next stages. */}
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
