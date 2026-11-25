@@ -79,6 +79,7 @@ describe('session',()=>{
         const me=await agent.get('/api/auth/me')
         expect(me.status).toBe(200)
         expect(me.body.email).toBe(user.email)
+        expect(me.body).not.toHaveProperty('passwordHash')
 
 
         const out =await agent.post('/api/auth/logout')

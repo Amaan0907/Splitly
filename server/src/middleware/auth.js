@@ -23,7 +23,8 @@ async function requireAuth(req,res,next) {
 
     }
 
-    const user=await users.findById(Number(payload.sub))
+    // never put the password hash on req.user: GET /auth/me sends req.user to the browser
+    const user=await users.findByIdWithoutPassword(Number(payload.sub))
     if(!user) throw unauthenticated()
     req.user=user
 
