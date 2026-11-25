@@ -8,6 +8,7 @@ import { AppLayout, RootLayout } from './components/Layout.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Auth from './pages/Auth.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import Group from './pages/Group.jsx'
 import './index.css'
 
 const Landing = lazy(() => import('./pages/Landing.jsx'))
@@ -33,6 +34,7 @@ createRoot(document.getElementById('root')).render(
               <Route path="/register" element={<Auth mode="register" />} />
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/groups/:id" element={<Group />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Route>
