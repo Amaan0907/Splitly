@@ -1,6 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+
+const DEPLOYED_API = 'https://splitly-0qy4.onrender.com'
 
 const CHUNKS = {
   react: ['react', 'react-dom', 'react-router', 'scheduler'],
@@ -19,16 +21,37 @@ function chunkFor(id) {
   return undefined
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  server: {
-    proxy: {
-      '/api': { target: 'http://localhost:4000', changeOrigin: true },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  // Dev proxy target: the deployed API by default; set API_PROXY_TARGET=http://localhost:4000 for a local server.
+  const target = env.API_PROXY_TARGET || DEPLOYED_API
+
+  return {
+    plugins: [react(), tailwindcss()],
+    server: {
+      proxy: {
+        '/api': {
+          target,
+          changeOrigin: true,
+          secure: true,
+          // The production API sets `Secure; SameSite=None` cookies. Through the proxy the
+          // browser sees http://localhost, so relax them to a normal first-party cookie.
+          configure: (proxy) => {
+            proxy.on('proxyRes', (res) => {
+              const cookies = res.headers['set-cookie']
+              if (!cookies) return
+              res.headers['set-cookie'] = cookies.map((c) =>
+                c.replace(/;\s*Secure/gi, '').replace(/;\s*SameSite=None/gi, '; SameSite=Lax'),
+              )
+            })
+          },
+        },
+      },
     },
-  },
-  build: {
-    rollupOptions: {
-      output: { manualChunks: chunkFor },
+    build: {
+      rollupOptions: {
+        output: { manualChunks: chunkFor },
+      },
     },
-  },
+  }
 })
