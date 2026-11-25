@@ -7,7 +7,9 @@ const validate=require('../middleware/validate.js')
 const expenseValidators = require('../validators/expense.validators.js')
 const expenseControllers = require('../controllers/expenses.controller.js')
 const balanceControllers = require('../controllers/balances.controller.js')
-
+const settlementValidators = require('../validators/settlements.validators.js')
+const settlementControllers = require('../controllers/settlements.controller.js')
+const activityControllers = require('../controllers/activity.controller.js')
 
 const router=Router()
 router.use(requireAuth)
@@ -30,6 +32,11 @@ router.post('/:id/expenses', requireMember, validate({ body: expenseValidators.c
 
 router.get('/:id/balances', requireMember, balanceControllers.balances)
 router.get('/:id/simplify', requireMember, balanceControllers.simplify)
+
+router.get('/:id/settlements', requireMember, validate({ query: settlementValidators.listQuerySchema }), settlementControllers.list)
+router.post('/:id/settlements', requireMember, validate({ body: settlementValidators.createSettlementSchema }), settlementControllers.create)
+
+router.get('/:id/activity', requireMember, validate({ query: settlementValidators.activityQuerySchema }), activityControllers.list)
 
 module.exports=router
 
