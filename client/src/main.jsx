@@ -1,25 +1,50 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Route, Routes } from 'react-router'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'motion/react'
+import { createQueryClient } from './lib/queries.js'
+import { ToastProvider } from './components/ui.jsx'
+import { AppLayout, RootLayout } from './components/Layout.jsx'
+import NotFound from './pages/NotFound.jsx'
+import Auth from './pages/Auth.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Group from './pages/Group.jsx'
 import './index.css'
 
-function Wordmark() {
-  return (
-    <span className="inline-flex items-center gap-2 text-xl font-extrabold tracking-tight text-ink">
-      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-        <rect width="22" height="22" rx="6" fill="#1C2238" />
-        <rect x="5" y="12" width="5" height="3.5" rx="1" fill="#B23A3F" />
-        <rect x="12" y="6.5" width="5" height="3.5" rx="1" fill="#0E7A5C" />
-        <rect x="10.25" y="4" width="1.5" height="14" rx=".75" fill="#FFFFFF" />
-      </svg>
-      Splitly
-    </span>
-  )
-}
+const Landing = lazy(() => import('./pages/Landing.jsx'))
+
+const queryClient = createQueryClient()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <main className="grid min-h-svh place-items-center bg-paper">
-      <Wordmark />
-    </main>
+    {/* Under prefers-reduced-motion, Motion skips transform/layout animation everywhere. */}
+    <MotionConfig reducedMotion="user">
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<RootLayout />}>
+              <Route
+                index
+                element={
+                  <Suspense fallback={null}>
+                    <Landing />
+                  </Suspense>
+                }
+              />
+              <Route path="/login" element={<Auth mode="login" />} />
+              <Route path="/register" element={<Auth mode="register" />} />
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/groups/:id" element={<Group />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
+    </QueryClientProvider>
+    </MotionConfig>
   </StrictMode>,
 )
