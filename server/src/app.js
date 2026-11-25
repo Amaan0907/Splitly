@@ -14,6 +14,10 @@ const errorHandler = require('./middleware/errorHandler.js')
 
 const app=express()
 
+// Render (and most hosts) sit one proxy in front of the app; trust it so req.ip is the
+// real client and the auth rate limiter counts per visitor, not per proxy
+app.set('trust proxy',1)
+
 app.set('etag',false)
 app.use(helmet())
 app.use(cors({origin:env.CLIENT_ORIGIN,credentials:true}))
